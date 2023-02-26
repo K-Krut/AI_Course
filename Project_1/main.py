@@ -2,8 +2,9 @@ import numpy as np
 
 
 class Neuron:
-    def __init__(self, weights):
+    def __init__(self, weights, name='Neuron'):
         self.weights = weights
+        self.name = name
 
     def get_weights(self):
         return self.weights
@@ -23,16 +24,19 @@ class Neuron:
     def forward(self, inputs):
         return self.act_F(self.get_S(inputs))
 
+    def __str__(self):
+        return f'{self.name}\nweights: {self.weights}\n'
+
 
 class NeuronAND(Neuron):
-    def __init__(self, weights):
+    def __init__(self, weights, name='Neuron AND'):
         if isinstance(weights, list):
             self.weights = weights
         if weights is None:
             self.weights = [1, 1]
         super().__init__(weights)
         self.weights = weights
-        self.name = 'Neuron AND'
+        self.name = name
 
     def act_F(self, weighted):
         return 1 if weighted >= 1.5 else 0
@@ -40,19 +44,16 @@ class NeuronAND(Neuron):
     def forward(self, inputs):  # print(self.weights, inputs)   print(np.dot(self.weights, inputs))
         return self.act_F(self.get_S(inputs))
 
-    def __str__(self):
-        return f'{self.name}\nweights: {self.weights}\n'
-
 
 class NeuronNOT(Neuron):
-    def __init__(self, weight):
+    def __init__(self, weight, name='Neuron NOT'):
         if isinstance(weight, float):
             self.weights = weight
         if weight is None:
             self.weights = -1.5
         super().__init__(weight)
         self.weights = weight
-        self.name = 'Neuron NOT'
+        self.name = name
 
     def set_weights(self, w):
         if isinstance(w, float):
@@ -69,8 +70,22 @@ class NeuronNOT(Neuron):
     def forward(self, inputs):
         return self.act_F(self.get_S(inputs))
 
-    def __str__(self):
-        return f'{self.name}\nweights: {self.weights}\n'
+
+class NeuronOR(Neuron):
+    def __init__(self, weight, name='Neuron OR'):
+        if isinstance(weight, list):
+            self.weights = weight
+        if weight is None:
+            self.weights = 0.5
+        super().__init__(weight)
+        self.weights = weight
+        self.name = name
+
+    def act_F(self, weighted):
+        return 1 if weighted >= 0.5 else 0
+
+    def forward(self, inputs):
+        return self.act_F(self.get_S(inputs))
 
 
 class NeuralNetworkLO:
