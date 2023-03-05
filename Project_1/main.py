@@ -1,6 +1,10 @@
 import numpy as np
 
 
+def get_connections_n(neurones, input_neurones):
+    return input_neurones * (neurones - input_neurones) + input_neurones * input_neurones
+
+
 class Neuron:
     def __init__(self, weights, name='Neuron'):
         self.weights = weights
@@ -121,10 +125,6 @@ class NeuralNetworkLO:
         if not self.result:
             self.result = self.check_data()
         return f'{str(self.neuron)}\n' + '\n'.join([f'{i[0]} => {i[1]}' for i in self.result]) + '\n---------------\n'
-
-
-def get_connections_n(neurones, input_neurones):
-    return input_neurones * (neurones - input_neurones) + input_neurones * input_neurones
 
 
 class NeuralNetworkXOR:
