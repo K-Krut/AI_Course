@@ -80,7 +80,7 @@ class NeuralNetwork:
             self.weights = w
 
     def get_hidden_weights(self):
-        return np.array_split(self.weights[:len(self.weights) - self.hidden_size], self.hidden_size)
+        return np.array_split(self.weights[:len(self.weights) - self.hidden_size], 4)
 
     def initialize_hidden(self):
         weights_ = self.get_hidden_weights()
@@ -98,11 +98,16 @@ class NeuralNetwork:
         for iteration in range(1):
             self.initialize_hidden()
             inputs = [2.65, 5.60, 1.21]
-            output_weights = self.weights[self.conn_n - self.hidden_size:]
+            output_weights = self.weights[12:]
             hidden_fS = self.get_hidden_fS(inputs)
-            out_fS = self.get_out_fS(hidden_fS)  #############
-            error = 5.48 - out_fS  ##########################
+            # print('zzzzzzz', [neuron.get_S(inputs) for neuron in self.hidden_neurones])
+            # print(hidden_fS)
+            out_fS = self.get_out_fS(hidden_fS)
+            error = 5.48 - out_fS
             delta = error * df(out_fS)
+            # print(error)
+            # for i in self.hidden_neurones:
+            #     print(i)
 
             # get adjusted weights for hidden
             for i in range(len(self.hidden_neurones)):
@@ -110,23 +115,46 @@ class NeuralNetwork:
                 neuron.set_delta(delta * output_weights[i] * df(neuron.neuron_fS))
 
             res = []
-            # res = np.array([np.array(i.weights) - i.delta * self.lmd * np.array(inputs) for i in self.hidden_neurones])
             for i in self.hidden_neurones:
-                res = np.concatenate([res, np.array(i.weights) - i.delta * self.lmd * np.array(inputs)])
-                # print(i, '\n', 'Δw', delta_w, '\n', '‾w', result_w, '\n')
+                res = np.concatenate([res, np.array(i.weights) + i.delta * self.lmd * np.array(inputs)])
 
             # get adjusted weights for output
-            result_w_out = np.array(output_weights) - delta * self.lmd * np.array(hidden_fS)
+            result_w_out = np.array(output_weights) + delta * self.lmd * np.array(hidden_fS)
 
-
-            print(res)
-            print(result_w_out)
-            # self.weights = np.concatenate([res, result_w_out])
+            self.weights = np.concatenate([res, result_w_out])
             # print(self.weights)
 
         self.initialize_hidden()
         out_fS = self.get_out_fS(self.get_hidden_fS([2.65, 5.60, 1.21]))
         print(out_fS)
+
+    def forward(self, inputs, weights_):
+        return f(np.dot(inputs, weights_))
+
+    def train2(self):
+        inputs = np.array([[2.65, 5.60, 1.21]])
+        output_data = np.array([[5.48]])
+
+        weights1 = np.array([[-0.1, 0.2, 0.1, 0.2], [0.5, -0.7, 0.1, -0.3], [0.5, 0.3, 0.6, -0.4]])
+        weights2 = np.array([[0.3], [0.3], [0.2], [0.1]])
+        for iteration in range(1):
+            hidden_fS = self.forward(inputs, weights1)  # F(S4), F(S5)...
+            out_fS = self.forward(hidden_fS, weights2) * 10
+            error = output_data - out_fS
+            delta = error * df(out_fS / 10)
+            delta_w_out = delta * np.multiply(weights2.T, df(hidden_fS))
+
+            weights2 += np.dot(hidden_fS.T, 0.1 * delta)
+            weights1 += np.dot(inputs.T, 0.1 * delta_w_out)
+
+        the_shape = output_data.shape
+        checked_studying = f(np.dot(f(np.dot(inputs, weights1)), weights2)) * 10
+
+        print("Check studying:")
+        print("Target output 		Calculated result")
+        for temp_ind in range(the_shape[0] * the_shape[1]):
+            # print('                 temp_ind' , temp_ind)
+            print(f"	{output_data[temp_ind][0]} 			 {checked_studying[temp_ind][0]}")
 
 
 data = [2.65, 5.60, 1.21, 5.48, 0.73, 4.08, 1.88, 5.31, 0.78, 4.36, 1.71, 5.62, 0.43, 4.21, 1.21]
@@ -137,8 +165,8 @@ weights = [-0.1, 0.2, 0.1, 0.2, 0.5, -0.7, 0.1, -0.3, 0.5, 0.3, 0.6, -0.4, 0.3, 
 
 nn = NeuralNetwork(weights)
 nn.train()
+nn.train2()
 # print(nn.get_hidden_weights())
-
 
 # w = np.array_split([-0.1, 0.2, 0.1, 0.2, 0.5, -0.7, 0.1, -0.3, 0.5, 0.3, 0.6, -0.4], 3)
 # print(w)
