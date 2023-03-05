@@ -1,52 +1,86 @@
 import numpy as np
 
 
-# Define activation function
-def sigmoid(x):
-    return 1 if x >= 0.5 else 0
-    # return 1 / (1 + np.exp(-x))
-
-
-# Define artificial neuron class
 class Neuron:
-    def __init__(self, weights):
+    def __init__(self, weights, name='Neuron'):
         self.weights = weights
+        self.name = name
+
+    def get_weights(self):
+        return self.weights
+
+    def set_weights(self, w):
+        if isinstance(w, list):
+            self.weights = w
+        if w is None:
+            self.weights = [1, 1]
+
+    def get_S(self, inputs):
+        return np.dot(np.array(self.weights), inputs)
+
+    def act_F(self, weighted):
+        return weighted
 
     def forward(self, inputs):
-        total = np.dot(self.weights, inputs)
-        # print('S = ', total)
-        return sigmoid(total)
+        return self.act_F(self.get_S(inputs))
+
+    def __str__(self):
+        return f'{self.name}\nweights: {self.weights}\n'
 
 
-# Define neural network class
-class NeuralNetwork:
-    def __init__(self):
-        self.neuron1 = Neuron([1, -1])
-        self.neuron2 = Neuron([-1, 1])
-        self.neuron3 = Neuron([1, 1])
+class NeuronXOR(Neuron):
+    def __init__(self, weight=None, name='Neuron XOR'):
+        if isinstance(weight, list):
+            self.weights = weight
+        if weight is None:
+            self.weights = [1, 1]
+        super().__init__(weight)
+        self.weights = weight
+        self.name = name
 
-    def forward(self, input1, input2):
-        output1 = self.neuron1.forward([input1, input2])
-        output2 = self.neuron2.forward([input1, input2])
-        output3 = self.neuron3.forward([output1, output2])
-        return output3
+    def act_F(self, weighted):
+        return 1 if weighted >= 0.5 else 0
+
+    def forward(self, inputs):
+        return self.act_F(self.get_S(inputs))
 
 
-# Create neural network object
-nn = NeuralNetwork()
+def get_connections_n(neurons, input_neurons):
+    return input_neurons * (neurons - input_neurons) + input_neurons * input_neurons
 
-# Test the neural network with inputs 0 and 0
-output = nn.forward(0, 0)
-print(output)  # Expected output: 0
 
-# Test the neural network with inputs 0 and 1
-output = nn.forward(0, 1)
-print(output)  # Expected output: 1
+class NeuralNetworkXOR:
+    def __init__(self, data, weights=None, neurons_n=3, input_nn=2):
+        self.neurons_n = neurons_n
+        self.input_nn = input_nn
+        if isinstance(weights, list) and len(weights) == get_connections_n(self.neurons_n, self.input_nn):
+            self.weights = weights
+        if weights is None:
+            self.weights = [[1, -1], [-1, 1], [1, 1]]
 
-# Test the neural network with inputs 1 and 0
-output = nn.forward(1, 0)
-print(output)  # Expected output: 1
+        self.neurones = self.initialize()
+        self.data = data
+        self.result = []
 
-# Test the neural network with inputs 1 and 1
-output = nn.forward(1, 1)
-print(output)  # Expected output: 0
+    def initialize(self):  # np.array_split(np.array([1, -1, -1, 1, 1, 1]), self.neurones_n)
+        return [NeuronXOR(i) for i in self.weights]
+
+    def forward(self, inputs):
+        return self.neurones[self.input_nn:][0].forward([i.forward(inputs) for i in self.neurones[:self.input_nn]])
+
+    def check_data(self):
+        return [(i, self.forward(i)) for i in self.data]
+
+    def __str__(self):
+        if not self.result:
+            self.result = self.check_data()
+        return f'\n'.join([f'{i[0]} => {i[1]}' for i in self.result]) + '\n---------------\n'
+
+
+data_XOR = [
+    (0, 0),  # Expected output: 0
+    (0, 1),  # Expected output: 1
+    (1, 0),  # Expected output: 1
+    (1, 1)   # Expected output: 1
+]
+print(NeuralNetworkXOR(data_XOR))
