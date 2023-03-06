@@ -89,25 +89,20 @@ class NeuralNetwork:
     def get_hidden_fS(self, inputs):
         for neuron in self.hidden_neurones:
             neuron.set_neuron_fS(neuron.forward(inputs))
-        return [neuron.forward(inputs) for neuron in self.hidden_neurones]
+        return [neuron.neuron_fS for neuron in self.hidden_neurones]
 
     def get_out_fS(self, hidden_fS):
         return f(np.dot(hidden_fS, self.weights[self.conn_n - self.hidden_size:]))
 
     def train(self):
-        for iteration in range(1):
+        for iteration in range(1000):
             self.initialize_hidden()
-            inputs = [2.65, 5.60, 1.21]
-            output_weights = self.weights[12:]
+            inputs = [0.265, 0.560, 0.121]
+            output_weights = self.weights[self.conn_n - self.hidden_size:]
             hidden_fS = self.get_hidden_fS(inputs)
-            # print('zzzzzzz', [neuron.get_S(inputs) for neuron in self.hidden_neurones])
-            # print(hidden_fS)
             out_fS = self.get_out_fS(hidden_fS)
-            error = 5.48 - out_fS
+            error = 0.548 - out_fS
             delta = error * df(out_fS)
-            # print(error)
-            # for i in self.hidden_neurones:
-            #     print(i)
 
             # get adjusted weights for hidden
             for i in range(len(self.hidden_neurones)):
@@ -125,7 +120,9 @@ class NeuralNetwork:
             # print(self.weights)
 
         self.initialize_hidden()
-        out_fS = self.get_out_fS(self.get_hidden_fS([2.65, 5.60, 1.21]))
+        out_fS = self.get_out_fS(self.get_hidden_fS([0.265, 0.560, 0.121])) * 10
+        for i in self.hidden_neurones:
+            print(i)
         print(out_fS)
 
     def forward(self, inputs, weights_):
@@ -137,7 +134,7 @@ class NeuralNetwork:
 
         weights1 = np.array([[-0.1, 0.2, 0.1, 0.2], [0.5, -0.7, 0.1, -0.3], [0.5, 0.3, 0.6, -0.4]])
         weights2 = np.array([[0.3], [0.3], [0.2], [0.1]])
-        for iteration in range(1):
+        for iteration in range(1000):
             hidden_fS = self.forward(inputs, weights1)  # F(S4), F(S5)...
             out_fS = self.forward(hidden_fS, weights2) * 10
             error = output_data - out_fS
@@ -158,64 +155,8 @@ class NeuralNetwork:
 
 
 data = [2.65, 5.60, 1.21, 5.48, 0.73, 4.08, 1.88, 5.31, 0.78, 4.36, 1.71, 5.62, 0.43, 4.21, 1.21]
-# [w14, w15, w16, w17, w24 ...]
-# weights = [-0.1, 0.2, 0.1, 0.3, 0.1, 0.5, -0.3, 0.6, 0.3, -0.7, 0.5, -0.4, 0.3, 0.3, 0.2, 0.1]
-# [w14, w24, w34, .. ? .. ]
+# [w14, w24, w34, w15 .. w68, w78]
 weights = [-0.1, 0.2, 0.1, 0.2, 0.5, -0.7, 0.1, -0.3, 0.5, 0.3, 0.6, -0.4, 0.3, 0.3, 0.2, 0.1]
 
 nn = NeuralNetwork(weights)
 nn.train()
-nn.train2()
-# print(nn.get_hidden_weights())
-
-# w = np.array_split([-0.1, 0.2, 0.1, 0.2, 0.5, -0.7, 0.1, -0.3, 0.5, 0.3, 0.6, -0.4], 3)
-# print(w)
-# train_data = np.array([[data[ind], data[ind + 1], data[ind + 2]] for ind in range(10)])
-# print(f(np.dot(f(np.dot(train_data, w)), [0.3, 0.3, 0.2, 0.1])))
-#
-
-
-# nn.train()
-
-# test = np.array([[-0.1 , 0.2 , 0.1 , 0.2], [ 0.5 ,-0.7 , 0.1, -0.3], [ 0.5 , 0.3 , 0.6 ,-0.4]])
-# W1 = np.array([[-0.2, 0.3, -0.4], [0.1, -0.3, -0.4]])
-# print(np.array(np.array_split([-0.1, 0.2, 0.1, 0.2, 0.5, -0.7, 0.1, -0.3, 0.5, 0.3, 0.6, -0.4], 3)))
-# print(np.dot(W1, [2.65, 5.60, 1.21]))
-# print(np.dot(test, [2.65, 5.60, 1.21]))
-# training_input_data = [[0.13, 5.97, 0.57],
-#  [5.97, 0.57, 4.02],
-#  [0.57, 4.02 ,0.31],
-#  [4.02, 0.31, 5.55],
-#  [0.31, 5.55 ,0.15],
-#  [5.55 ,0.15, 4.54],
-#  [0.15, 4.54 ,0.65],
-#  [4.54 ,0.65 ,4.34],
-#  [0.65 ,4.34 ,1.54],
-#  [4.34 ,1.54 ,4.7 ]]
-# all_weights1= [[0.13014705, 0.60179093 ,0.54086457, 0.58055869],
-#  [0.84098176, 0.63216505, 0.38153196, 0.65285245],
-#  [0.81100167 ,0.70115784, 0.09563249 ,0.12707542]]
-# print(np.dot(training_input_data, all_weights1))
-
-# W1 = np.array([-0.2, 0.3, -0.4])
-# x = [1, 10, 100]
-# print(W1[:] * x[0:3])
-#
-# print(0.06472316611941606 * 0.1 * 2.65)
-
-"""
-Neuron 4
-weights: [-0.1  0.2  0.1]
- 0.9759999999999999
-Neuron 5
-weights: [ 0.2  0.5 -0.7]
- 2.483
-Neuron 6
-weights: [ 0.1 -0.3  0.5]
- -0.81
-Neuron 7
-weights: [ 0.3  0.6 -0.4]
- 3.6709999999999994
-"""
-# i = 0
-# print(weights[i :i + 3])
