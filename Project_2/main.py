@@ -80,6 +80,7 @@ class Layer:
 
     def get_neurones_weights(self):
         return [neuron.weights for neuron in self.neurones]
+
     def set_weights(self, w):
         if isinstance(w, list) and len(w) == self.size:
             self.weights = w
@@ -109,6 +110,7 @@ class HiddenLayer(Layer):
         super().__init__(size, inputs, start_n, name, w)
         self.fS = []
         self.errors = []
+        self.deltas = []
 
     def set_fS(self, fs):
         self.fS = fs
@@ -116,8 +118,11 @@ class HiddenLayer(Layer):
     def set_errors(self, errors):
         self.errors = errors
 
-    def set_delta(self):
+    def get_deltas(self):
         pass
+
+    def set_deltas(self, deltas):
+        self.deltas = deltas
     #     for i in range(len(self.neurones)):
     #         neuron = self.neurones[i]
     #         neuron.set_delta(self.output_neuron.delta * self.output_neuron.weights[i] * df(neuron.neuron_fS))
@@ -126,8 +131,9 @@ class HiddenLayer(Layer):
 class OutputLayer(Layer):
     def __init__(self, size, inputs, start_n, name='Output Layer', w=None):
         super().__init__(size, inputs, start_n, name, w)
-        self.fS = None
-        self.errors = None
+        self.fS = []
+        self.errors = []
+        self.deltas = []
 
     def set_fS(self, fs):
         self.fS = fs
@@ -135,8 +141,11 @@ class OutputLayer(Layer):
     def set_errors(self, errors):
         self.errors = errors
 
-    def set_delta(self):
+    def get_deltas(self):
         pass
+
+    def set_deltas(self, deltas):
+        self.deltas = deltas
 
 
 def get_start(arr, i):
@@ -148,7 +157,7 @@ def get_inputs(input_size, arr, i):
 
 
 class NeuralNetwork:
-    def __init__(self, weights_=None, iter=1000, lmd=0.1, input_size=36, hidden=[36, 36, 36, 15], output_size=2):
+    def __init__(self, weights_=None, iter=1000, lmd=0.1, input_size=36, hidden=[36, 36], output_size=2):
         self.input = Layer(input_size, 0, 0, 'Input Layer')
         self.hidden = [
             HiddenLayer(input_size + get_start(hidden, i), get_inputs(input_size, hidden, i), hidden[i],
@@ -188,37 +197,19 @@ class NeuralNetwork:
         errors = np.array(expected) - np.array(self.output.fS)
         deltas = errors * df(np.array(self.output.fS))
 
-
-        hidden_errors = []
-        hidden_deltas = []
-        # self.hidden.reverse()
-        print([self.hidden[i].name for i in range(len(self.hidden))])
-
-        for i in range(len(self.hidden)):
-            print(i, i == len(self.hidden) - 1)
-            # print(self.hidden[0].name)
-            # print(self.hidden[1].name)
-            # print(self.hidden[2].name)
-            # print(self.hidden[3].name)
-            layer = self.output if i == len(self.hidden) - 1 else self.hidden[len(self.hidden) - i - 1]
-            print(i, layer.name)
-                # hidden_errors.append(np.dot(deltas, self.output.get_neurones_weights()))
-                # hidden_deltas.append(hidden_errors[i] * df(np.array(output_fS)))
-            # else:
-            #     print(i, self.hidden[i].name, self.hidden[i - 1].name)
-            #     hidden_errors.append(np.dot(hidden_deltas[i - 1], self.hidden[i - 1].get_neurones_weights()))
-            #     hidden_deltas.append(hidden_errors[i] * df(np.array(hidden_fS[len(hidden_fS) - i])))
-
         self.hidden.reverse()
-        print('-' * 25)
         for i in range(len(self.hidden)):
-            if i == 0:
-                layer = self.output
-                print(i, layer.name)
-            else:
-                print(i, self.hidden[i].name, self.hidden[i - 1].name)
+            prev_layer = self.output if i == 0 else self.hidden[i - 1]
+            layer = self.hidden[i]
+            print(layer.name, prev_layer.name)
+            print(deltas, prev_layer.get_neurones_weights())
+            layer.set_errors(np.dot(deltas, prev_layer.get_neurones_weights()))
+            layer.set_deltas(layer.errors * df(np.array(layer.fS)))
+
         print(errors)
         print(deltas)
+        print([i.errors for i in self.hidden])
+        print([i.deltas for i in self.hidden])
         self.hidden.reverse()
         print([self.hidden[i].name for i in range(len(self.hidden))])
 
