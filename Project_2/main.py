@@ -107,8 +107,8 @@ class Layer:
 class HiddenLayer(Layer):
     def __init__(self, start_n, inputs, size=36, name='Hidden Layer', w=None):
         super().__init__(size, inputs, start_n, name, w)
-        self.fS = None
-        self.errors = None
+        self.fS = []
+        self.errors = []
 
     def set_fS(self, fs):
         self.fS = fs
@@ -148,7 +148,7 @@ def get_inputs(input_size, arr, i):
 
 
 class NeuralNetwork:
-    def __init__(self, weights_=None, iter=1000, lmd=0.1, input_size=36, hidden=[36], output_size=2):
+    def __init__(self, weights_=None, iter=1000, lmd=0.1, input_size=36, hidden=[36, 36, 36, 15], output_size=2):
         self.input = Layer(input_size, 0, 0, 'Input Layer')
         self.hidden = [
             HiddenLayer(input_size + get_start(hidden, i), get_inputs(input_size, hidden, i), hidden[i],
@@ -191,17 +191,32 @@ class NeuralNetwork:
 
         hidden_errors = []
         hidden_deltas = []
-        self.hidden.reverse()
+        # self.hidden.reverse()
         print([self.hidden[i].name for i in range(len(self.hidden))])
+
         for i in range(len(self.hidden)):
-            # layer = self.output if i == 0 else self.hidden[i - 1]
-                print(i, self.hidden[i].name, self.output.name)
-                hidden_errors.append(np.dot(deltas, self.output.get_neurones_weights()))
-                hidden_deltas.append(hidden_errors[i] * df(np.array(output_fS)))
+            print(i, i == len(self.hidden) - 1)
+            # print(self.hidden[0].name)
+            # print(self.hidden[1].name)
+            # print(self.hidden[2].name)
+            # print(self.hidden[3].name)
+            layer = self.output if i == len(self.hidden) - 1 else self.hidden[len(self.hidden) - i - 1]
+            print(i, layer.name)
+                # hidden_errors.append(np.dot(deltas, self.output.get_neurones_weights()))
+                # hidden_deltas.append(hidden_errors[i] * df(np.array(output_fS)))
             # else:
             #     print(i, self.hidden[i].name, self.hidden[i - 1].name)
             #     hidden_errors.append(np.dot(hidden_deltas[i - 1], self.hidden[i - 1].get_neurones_weights()))
             #     hidden_deltas.append(hidden_errors[i] * df(np.array(hidden_fS[len(hidden_fS) - i])))
+
+        self.hidden.reverse()
+        print('-' * 25)
+        for i in range(len(self.hidden)):
+            if i == 0:
+                layer = self.output
+                print(i, layer.name)
+            else:
+                print(i, self.hidden[i].name, self.hidden[i - 1].name)
         print(errors)
         print(deltas)
         self.hidden.reverse()
