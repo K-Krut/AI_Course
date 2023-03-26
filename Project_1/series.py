@@ -5,6 +5,8 @@ hidden = neurones
 inp = input neurones 
 out = output neurones
 """
+
+
 def get_connections_n(hidden, inp, out):
     return inp * hidden + hidden * out
 
@@ -52,7 +54,7 @@ class Neuron:
         return self.f(self.get_S(inputs))
 
     def __str__(self):
-        return f'{self.name}\nweights: {self.weights}\nf(S): {self.neuron_fS}\ndelta: {self.delta}'
+        return f'{self.name}\nweights: {self.weights}\nf(S): {self.neuron_fS}\ndelta: {self.delta}\n'
 
 
 class NeuralNetwork:
@@ -130,6 +132,7 @@ class NeuralNetwork:
         self.initialize_hidden()
         self.initialize_output()
         return self.get_out_fS(self.get_hidden_fS(np.array(inputs) / 10)) * 10
+
     def test(self, data_):
         return (data_[1], self.check(data_[0]))
 
@@ -147,9 +150,11 @@ class NeuralNetwork:
             self.set_hidden_delta()
             self.adjust_weights(hidden_fs, inputs)
 
+            if iteration == 999:
+                for i in self.hidden_neurones:
+                    print(i)
 
-    def forward(self, inputs, weights_):
-        return f(np.dot(inputs, weights_))
+                print(self.output_neuron)
 
 
 data = [2.65, 5.60, 1.21, 5.48, 0.73, 4.08, 1.88, 5.31, 0.78, 4.36, 1.71, 5.62, 0.43, 4.21, 1.21]
@@ -160,4 +165,3 @@ nn = NeuralNetwork(weights)
 nn.train(([2.65, 5.60, 1.21], 5.48))
 print(nn.check([2.65, 5.60, 1.21]))
 print(nn.test(([5.62, 0.43, 4.21], 1.21)))
-
