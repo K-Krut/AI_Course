@@ -181,23 +181,29 @@ class NeuralNetwork:
     def set_lmd(self, lmd):
         self.lmd = lmd
 
-    def train(self, inputs, expected):
-        for layer in self.hidden:
-            layer.set_fS(layer.get_fS(inputs))
+    def forward(self, inputs):
+        for layer in range(len(self.hidden)):
+            self.hidden[layer].set_fS(self.hidden[layer].get_fS(inputs if layer == 0 else self.hidden[layer - 1].fS))
         self.output.set_fS(self.output.get_fS(self.hidden[-1].fS))
+        # for layer in self.hidden:
+        #     layer.set_fS(layer.get_fS(inputs))
+        # self.output.set_fS(self.output.get_fS(self.hidden[-1].fS))
 
-        errors = np.array(expected) - np.array(self.output.fS)
-        deltas = errors * df(np.array(self.output.fS))
+    def train(self, inputs, expected):
+        self.forward(inputs)
 
-        self.hidden.reverse()
-        for i in range(len(self.hidden)):
-            prev_layer = self.output if i == 0 else self.hidden[i - 1]
-            layer = self.hidden[i]
-            delta = deltas if i == 0 else self.hidden[i - 1].deltas
-            layer.set_errors(np.dot(delta, prev_layer.get_neurones_weights()))
-            layer.set_deltas(layer.errors * df(np.array(layer.fS)))
-
-        self.hidden.reverse()
+        # errors = np.array(expected) - np.array(self.output.fS)
+        # deltas = errors * df(np.array(self.output.fS))
+        #
+        # self.hidden.reverse()
+        # for i in range(len(self.hidden)):
+        #     prev_layer = self.output if i == 0 else self.hidden[i - 1]
+        #     layer = self.hidden[i]
+        #     delta = deltas if i == 0 else self.hidden[i - 1].deltas
+        #     layer.set_errors(np.dot(delta, prev_layer.get_neurones_weights()))
+        #     layer.set_deltas(layer.errors * df(np.array(layer.fS)))
+        #
+        # self.hidden.reverse()
 
 
         # for i in range(self.output_size):
