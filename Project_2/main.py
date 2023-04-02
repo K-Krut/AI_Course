@@ -62,7 +62,7 @@ class Layer:
         self.start_n = start_n
         self.name = name
         self.n_inputs = inputs
-        self.weights = w if isinstance(w, list) and len(w) == self.size else [1 for _ in range(self.size)]
+        self.weights = np.array(w if isinstance(w, list) and len(w) == self.size else [1 for _ in range(self.size)])
         self.neurones = []
 
     def initialize(self):
@@ -92,14 +92,11 @@ class Layer:
             neuron.set_neuron_fS(neuron.forward(inputs))
         return [neuron.neuron_fS for neuron in self.neurones]
 
-    # def get_deltas(self, errors, ):
-    #     for neuron in self.neurones:
-    #         neuron.set_delta(self.output_neuron.delta * self.output_neuron.weights[i] * df(neuron.neuron_fS))
-    #     return [neuron.neuron_fS for neuron in self.neurones]
 
-    def adjust_weights(self, inputs, lmd):
-        self.weights = np.array(
-            [np.array(neuron.weights) + neuron.delta * lmd * np.array(inputs) for neuron in self.neurones]).flatten()
+    def adjust_weights(self, fs, lmd):
+        pass
+        # self.weights = np.array(
+        #     [np.array(neuron.weights) + neuron.delta * lmd * np.array(inputs) for neuron in self.neurones]).flatten()
 
     def __str__(self):
         return f'{self.name}\n' + ''.join([str(neuron) for neuron in self.neurones])
@@ -115,6 +112,7 @@ class HiddenLayer(Layer):
     def set_fS(self, fs):
         self.fS = fs
 
+
     def set_errors(self, errors):
         self.errors = errors
 
@@ -123,8 +121,9 @@ class HiddenLayer(Layer):
 
     def set_deltas(self, deltas):
         self.deltas = deltas
-        # for neuron in self.neurones:
-            # neuron.set_delta(self.output_neuron.delta * self.output_neuron.weights[i] * df(neuron.neuron_fS))
+        for i, neuron in enumerate(self.neurones):
+            neuron.set_delta(self.deltas[i])
+
 
 
 class OutputLayer(Layer):
@@ -133,6 +132,7 @@ class OutputLayer(Layer):
         self.fS = []
         self.errors = []
         self.deltas = []
+        self.weights = np.array([1 for _ in range(self.n_inputs * self.size)])
 
     def set_fS(self, fs):
         self.fS = fs
@@ -145,6 +145,22 @@ class OutputLayer(Layer):
 
     def set_deltas(self, deltas):
         self.deltas = deltas
+        for i, neuron in enumerate(self.neurones):
+            neuron.set_delta(self.deltas[i])
+
+    def adjust_weights(self, fs, lmd):  # weights = np.array(neuron.weights) + neuron.delta * lmd * np.array(fs)
+        for i, neuron in enumerate(self.neurones):
+            neuron.weights = [w * lmd * fs[j] for j, w in enumerate(neuron.weights)]
+        self.weights = [w for weights in [neuron.weights for neuron in self.neurones] for w in weights]
+        # self.weights = self.weights + np.dot(self.deltas, fs) * lmd
+        # for i, neuron in enumerate(self.neurones):
+        #     neuron.weights = np.array(neuron.weights) + neuron.delta * lmd * np.array(fs)
+        #     print(neuron.weights)
+        # # self.weights = [w for w in [neuron.weights for neuron in self.neurones]]
+        # self.weights = np.array([neuron.weights for neuron in self.neurones]).flatten()
+        #
+        # # self.weights = self.weights + np.dot(self.deltas, fs) * lmd
+
 
 
 def get_start(arr, i):
@@ -182,29 +198,34 @@ class NeuralNetwork:
         self.lmd = lmd
 
     def forward(self, inputs):
-        for layer in range(len(self.hidden)):
-            self.hidden[layer].set_fS(self.hidden[layer].get_fS(inputs if layer == 0 else self.hidden[layer - 1].fS))
+        for i, layer in enumerate(self.hidden):
+            layer.set_fS(layer.get_fS(inputs if i == 0 else self.hidden[i - 1].fS))
         self.output.set_fS(self.output.get_fS(self.hidden[-1].fS))
-        # for layer in self.hidden:
-        #     layer.set_fS(layer.get_fS(inputs))
-        # self.output.set_fS(self.output.get_fS(self.hidden[-1].fS))
+
 
     def train(self, inputs, expected):
         self.forward(inputs)
 
-        # errors = np.array(expected) - np.array(self.output.fS)
-        # deltas = errors * df(np.array(self.output.fS))
-        #
-        # self.hidden.reverse()
-        # for i in range(len(self.hidden)):
-        #     prev_layer = self.output if i == 0 else self.hidden[i - 1]
-        #     layer = self.hidden[i]
-        #     delta = deltas if i == 0 else self.hidden[i - 1].deltas
-        #     layer.set_errors(np.dot(delta, prev_layer.get_neurones_weights()))
-        #     layer.set_deltas(layer.errors * df(np.array(layer.fS)))
-        #
-        # self.hidden.reverse()
+        errors = np.array(expected) - np.array(self.output.fS)
+        deltas = errors * df(np.array(self.output.fS))
+        self.output.set_errors(errors)
+        self.output.set_deltas(deltas)
+        print(errors)
+        print(deltas)
 
+        ##############################################################################
+
+        self.hidden.reverse()
+
+        for i, layer in enumerate(self.hidden):
+            prev_layer = self.output if i == 0 else self.hidden[i - 1]
+            delta = deltas if i == 0 else self.hidden[i - 1].deltas
+            layer.set_errors(np.dot(delta, prev_layer.get_neurones_weights()))
+            layer.set_deltas(layer.errors * df(np.array(layer.fS)))
+
+        self.hidden.reverse()
+
+        self.output.adjust_weights(self.hidden[-1].fS, self.lmd)
 
         # for i in range(self.output_size):
         #     self.output[i].weights += learning_rate * np.dot([neuron.activation for neuron in self.hidden2].T,
@@ -217,7 +238,7 @@ class NeuralNetwork:
         # for i in range(self.hidden_size):
         #     self.hidden1[i].weights += learning_rate * np.dot(inputs.T, hidden1_deltas[i])
 
-        print('\n----------------------\n'.join([str(self.input)] + [str(i) for i in self.hidden] + [str(self.output)]))
+        # print('\n----------------------\n'.join([str(self.input)] + [str(i) for i in self.hidden] + [str(self.output)]))
 
     def __str__(self):
         return '\n----------------------\n'.join([str(self.input)] + [str(i) for i in self.hidden] + [str(self.output)])
