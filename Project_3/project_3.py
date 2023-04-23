@@ -71,14 +71,10 @@ class Population:
 
     # get ranges for children
     def get_ranges(self, index):
-        minVal = self.get_min_parents(index)
-        maxVal = self.get_max_parents(index)
-        minRange = minVal - self.ranging_rate * (maxVal - minVal)
-        maxRange = maxVal + self.ranging_rate * (maxVal - minVal)
-        minRange = self.check_min(minRange)
-        maxRange = self.check_max(maxRange)
-
-        return minRange, maxRange
+        min_p_value = self.get_min_parents(index)
+        max_p_value = self.get_max_parents(index)
+        correction = self.ranging_rate * (max_p_value - min_p_value)
+        return self.check_min(min_p_value - correction), self.check_max(max_p_value + correction)
 
     # random value for children
     @staticmethod
@@ -86,15 +82,12 @@ class Population:
         return npr.random() * (max_range - min_range) + min_range
 
     def crossover(self):
-        children = []
         for i in range(0, self.population_n, 2):
             ranges = self.get_ranges(i)
             child1 = Chromosome(ranges[0], ranges[1], self.rand_value(ranges[0], ranges[1]))
             child2 = Chromosome(ranges[0], ranges[1], self.rand_value(ranges[0], ranges[1]))
-
-            children.append(child1)
-            children.append(child2)
-        self.population.extend(children)
+            self.population.append(child1)
+            self.population.append(child2)
         self.sort_chromosomes()
         self.population = self.population[:self.population_n]
 
