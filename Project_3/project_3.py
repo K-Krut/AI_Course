@@ -2,6 +2,7 @@ import random
 import numpy as np
 import numpy.random as npr
 
+
 class Chromosome:
     MUTATION_RATE = 0.1
 
@@ -59,14 +60,23 @@ class Population:
     def get_max_parents(self, index):
         return max(self.population[index].value, self.population[index + 1].value)
 
+    def check_range(self, value, range='min'):
+        return eval(f'self.{range}_value if {value} {"<" if range == "min" else ">"} self.{range}_value else {value}')
+
+    def check_min(self, value):
+        return self.min_value if value < self.min_value else value
+
+    def check_max(self, value):
+        return self.max_value if value > self.max_value else value
+
     # get ranges for children
     def get_ranges(self, index):
         minVal = self.get_min_parents(index)
         maxVal = self.get_max_parents(index)
         minRange = minVal - self.ranging_rate * (maxVal - minVal)
         maxRange = maxVal + self.ranging_rate * (maxVal - minVal)
-        minRange = self.min_value if minRange < self.min_value else minRange
-        maxRange = self.max_value if maxRange > self.max_value else maxRange
+        minRange = self.check_min(minRange)
+        maxRange = self.check_max(maxRange)
 
         return minRange, maxRange
 
@@ -88,8 +98,6 @@ class Population:
         self.sort_chromosomes()
         self.population = self.population[:self.population_n]
 
-
-
     def mutate(self):
         for i in range(self.population_n):
             self.population[i].mutate()
@@ -109,7 +117,6 @@ if __name__ == "__main__":
         population.mutate()
     population.sort_chromosomes()
     print(str(population.getPopulation()[0].get_value()) + " " + str(population.getPopulation()[0].get_fitness()))
-
 
     population = Population(40, False, 0, 8)
     for i in range(50):
