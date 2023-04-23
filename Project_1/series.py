@@ -124,7 +124,8 @@ class NeuralNetwork:
     def adjust_weights(self, hidden_fs, inputs):
 
         hidden_weights = np.array(
-            [np.array(i.weights) + i.delta * self.lmd * np.array(inputs) for i in self.hidden_neurones]).flatten()
+            [np.array(i.weights) + i.delta * self.lmd * np.array(inputs) for i in self.hidden_neurones]
+        ).flatten()
 
         self.weights = np.concatenate([hidden_weights, self.adjust_weights_output(hidden_fs)])
 

@@ -94,4 +94,4 @@ arr = [1, 1, 0, 0, 0, 0,
        0, 0, 0, 0, 0, 0]
 
 nn = NeuralNetwork()
-nn.train(arr, [0, 1])
+nn.train(arr, [0, 0])
