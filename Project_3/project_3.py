@@ -4,8 +4,6 @@ import numpy.random as npr
 
 
 class Chromosome:
-    MUTATION_RATE = 0.1
-
     def __init__(self, min_value, max_value, value=None, mut_rate=0.1):
         self.fitness = 0
         self.min_value = min_value
@@ -38,7 +36,7 @@ class Chromosome:
         return 1 if sign >= 0 else -1
 
     def __str__(self):
-        return f"Chromosome{{value={self.value}, fitness={self.fitness}}}"
+        return f"Chromosome: ({self.value}, {self.fitness})\n"
 
 
 class Population:
@@ -50,6 +48,7 @@ class Population:
         self.min_value = min_value
         self.max_value = max_value
         self.ranging_rate = 0.125
+        self.step = 2
 
     def sort_chromosomes(self):
         self.population = sorted(self.population, reverse=self.reversed, key=lambda x: x.fitness)
@@ -82,12 +81,10 @@ class Population:
         return npr.random() * (max_range - min_range) + min_range
 
     def crossover(self):
-        for i in range(0, self.population_n, 2):
+        for i in range(0, self.population_n, self.step):
             ranges = self.get_ranges(i)
-            child1 = Chromosome(ranges[0], ranges[1], self.rand_value(ranges[0], ranges[1]))
-            child2 = Chromosome(ranges[0], ranges[1], self.rand_value(ranges[0], ranges[1]))
-            self.population.append(child1)
-            self.population.append(child2)
+            for child in range(self.step):
+                self.population.append(Chromosome(ranges[0], ranges[1], self.rand_value(ranges[0], ranges[1])))
         self.sort_chromosomes()
         self.population = self.population[:self.population_n]
 
@@ -95,11 +92,15 @@ class Population:
         for i in range(self.population_n):
             self.population[i].mutate()
 
-    def getPopulation(self):
+    def get_population(self):
         return self.population
 
+    def get_best(self):
+        return self.get_population()[0].value, self.get_population()[0].fitness
+        # return f"Best: ({round(self.get_population()[0].value, 4)}, {round(self.get_population()[0].fitness, 4)})"
+
     def __str__(self):
-        return f"Population{{populationNumber={self.population_n}, population={self.population}}}"
+        return f"Population:\npopulation number: {self.population_n}\n\n{''.join([str(x) for x in self.population])}\n"
 
 
 if __name__ == "__main__":
@@ -109,7 +110,7 @@ if __name__ == "__main__":
         population.crossover()
         population.mutate()
     population.sort_chromosomes()
-    print(str(population.getPopulation()[0].get_value()) + " " + str(population.getPopulation()[0].get_fitness()))
+    print(population.get_best())
 
     population = Population(40, False, 0, 8)
     for i in range(50):
@@ -117,4 +118,4 @@ if __name__ == "__main__":
         population.crossover()
         population.mutate()
     population.sort_chromosomes()
-    print(str(population.getPopulation()[0].get_value()) + " " + str(population.getPopulation()[0].get_fitness()))
+    print(str(population.get_population()[0].get_value()) + " " + str(population.get_population()[0].get_fitness()))
