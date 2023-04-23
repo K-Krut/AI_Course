@@ -89,8 +89,8 @@ class Population:
         self.population = self.population[:self.population_n]
 
     def mutate(self):
-        for i in range(self.population_n):
-            self.population[i].mutate()
+        for chromosome in self.population:
+            chromosome.mutate()
 
     def get_population(self):
         return self.population
@@ -99,23 +99,20 @@ class Population:
         return self.get_population()[0].value, self.get_population()[0].fitness
         # return f"Best: ({round(self.get_population()[0].value, 4)}, {round(self.get_population()[0].fitness, 4)})"
 
+    def evolution(self):
+        self.crossover()
+        self.mutate()
+
     def __str__(self):
         return f"Population:\npopulation number: {self.population_n}\n\n{''.join([str(x) for x in self.population])}\n"
 
 
-if __name__ == "__main__":
-    population = Population(40, True, 0, 8)
-    for i in range(50):
-        population.sort_chromosomes()
-        population.crossover()
-        population.mutate()
-    population.sort_chromosomes()
-    print(population.get_best())
+population = Population(40, True, 0, 8)
+for i in range(50):
+    population.evolution()
+print(population.get_best())
 
-    population = Population(40, False, 0, 8)
-    for i in range(50):
-        population.sort_chromosomes()
-        population.crossover()
-        population.mutate()
-    population.sort_chromosomes()
-    print(str(population.get_population()[0].get_value()) + " " + str(population.get_population()[0].get_fitness()))
+population = Population(40, False, 0, 8)
+for i in range(50):
+    population.evolution()
+print(population.get_best())
