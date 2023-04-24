@@ -47,7 +47,7 @@ class Population:
         self.population = [Chromosome(min_value, max_value) for _ in range(population_n)]
         self.min_value = min_value
         self.max_value = max_value
-        self.ranging_rate = 0.125
+        self.ranging_rate = 0.025
         self.step = 2
 
     def sort_chromosomes(self):
@@ -107,12 +107,18 @@ class Population:
         return f"Population:\npopulation number: {self.population_n}\n\n{''.join([str(x) for x in self.population])}\n"
 
 
-population = Population(40, True, 0, 8)
-for i in range(50):
+bounds = [0, 8]
+population_number = 40
+iter = 40
+
+# Finding Maximum Y(x)=5*sin(10*x)*sin(3*x)/(x^x),x=[0...8]
+population = Population(population_number, True, bounds[0], bounds[1])
+for i in range(iter):
     population.evolution()
 print(population.get_best())
 
-population = Population(40, False, 0, 8)
-for i in range(50):
+# Finding Minimum Y(x)=5*sin(10*x)*sin(3*x)/(x^x),x=[0...8]
+population = Population(population_number, False, bounds[0], bounds[1])
+for i in range(iter):
     population.evolution()
 print(population.get_best())
